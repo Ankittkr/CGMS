@@ -1,0 +1,23 @@
+{
+  "name": "complaint-grievance-management-system",
+  "version": "1.0.0",
+  "description": "Institutional Complaint & Grievance Management System (CGMS)",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix backend start",
+    "backend:dev": "npm --prefix backend run dev",
+    "backend:seed": "npm --prefix backend run seed",
+    "frontend:dev": "npm --prefix frontend run dev",
+    "frontend:build": "npm --prefix frontend run build"
+  },
+  "keywords": [
+    "grievance-management",
+    "college-project",
+    "mern",
+    "redux-toolkit",
+    "react",
+    "express"
+  ],
+  "author": "Ankit Kumar",
+  "license": "ISC"
+}
