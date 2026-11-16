@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { upload } from "../middlewares/multer.middleware.js";
 import {
     createGrievance,
     getAllGrievances,
@@ -17,7 +18,11 @@ router.use(verifyJWT);
 
 router
     .route("/")
-    .post(authorizeRoles("student", "admin"), createGrievance)
+    .post(
+        authorizeRoles("student", "admin"),
+        upload.array("attachments", 5),
+        createGrievance
+    )
     .get(getAllGrievances);
 
 router.route("/:id").get(getGrievanceById);

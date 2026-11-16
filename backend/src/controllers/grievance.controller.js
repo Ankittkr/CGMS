@@ -5,7 +5,10 @@ import { User } from "../models/User.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-
+import {
+    uploadToCloudinary,
+    deleteFromCloudinary,
+} from "../services/cloudinary.service.js";
 // Helper to generate unique complaint ID
 const generateGrievanceId = async () => {
     const year = new Date().getFullYear();
@@ -14,57 +17,122 @@ const generateGrievanceId = async () => {
     return `GRV-${year}-${String(count + 1).padStart(4, "0")}-${randomHex}`;
 };
 
+
 export const createGrievance = asyncHandler(async (req, res) => {
-    const { title, description, category, department, priority, attachments } = req.body;
-
-    if (!title || !description || !category || !department) {
-        throw new ApiError(400, "Title, description, category and department are required.");
-    }
-
-    const grievanceId = await generateGrievanceId();
-
-    const grievance = await Grievance.create({
-        grievanceId,
+    const {
         title,
         description,
         category,
         department,
-        priority: priority || "Medium",
-        complainant: req.user._id,
-        status: "Submitted",
-        attachments: attachments || [],
-        statusHistory: [
-            {
-                previousStatus: "",
-                newStatus: "Submitted",
-                updatedBy: req.user._id,
-                remarks: "Grievance submitted by complainant.",
-                timestamp: new Date(),
-            },
-        ],
-    });
+        priority,
+    } = req.body;
 
-    // Notify administrators
-    const admins = await User.find({ role: "admin", isActive: true });
-    if (admins.length > 0) {
-        const notifications = admins.map((admin) => ({
-            recipient: admin._id,
-            title: "New Grievance Submitted",
-            message: `New complaint #${grievanceId} "${title}" lodged under your institution.`,
-            type: "general",
-            relatedGrievance: grievance._id,
-        }));
-        await Notification.insertMany(notifications);
+    if (!title || !description || !category || !department) {
+        throw new ApiError(
+            400,
+            "Title, description, category and department are required."
+        );
     }
 
-    const createdGrievance = await Grievance.findById(grievance._id)
-        .populate("complainant", "name email rollOrEmployeeId")
-        .populate("department", "name code")
-        .populate("category", "name slaHours");
+    const uploadedAttachments = [];
+    let grievanceSaved = false;
+    try {
+        // 1. Upload attachments to Cloudinary
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                const result = await uploadToCloudinary(file.buffer);
 
-    return res
-        .status(201)
-        .json(new ApiResponse(201, { grievance: createdGrievance }, "Grievance submitted successfully"));
+                uploadedAttachments.push({
+                    filename: file.originalname,
+                    url: result.secure_url,
+                    publicId: result.public_id,
+                    fileType: file.mimetype,
+                    resourceType: result.resource_type,
+                    format: result.format || "",
+                    size: result.bytes,
+                    uploadedAt: new Date(),
+                });
+            }
+        }
+
+        // 2. Generate grievance ID
+        const grievanceId = await generateGrievanceId();
+
+        // 3. Save grievance in MongoDB
+        const grievance = await Grievance.create({
+            grievanceId,
+            title,
+            description,
+            category,
+            department,
+            priority: priority || "Medium",
+            complainant: req.user._id,
+            status: "Submitted",
+            attachments: uploadedAttachments,
+            statusHistory: [
+                {
+                    previousStatus: "",
+                    newStatus: "Submitted",
+                    updatedBy: req.user._id,
+                    remarks: "Grievance submitted by complainant.",
+                    timestamp: new Date(),
+                },
+            ],
+        });
+        grievanceSaved = true;
+        // 4. Notify administrators
+        const admins = await User.find({
+            role: "admin",
+            isActive: true,
+        });
+
+        if (admins.length > 0) {
+            const notifications = admins.map((admin) => ({
+                recipient: admin._id,
+                title: "New Grievance Submitted",
+                message: `New complaint #${grievanceId} "${title}" lodged under your institution.`,
+                type: "general",
+                relatedGrievance: grievance._id,
+            }));
+
+            await Notification.insertMany(notifications);
+        }
+
+        // 5. Return populated grievance
+        const createdGrievance = await Grievance.findById(grievance._id)
+            .populate("complainant", "name email rollOrEmployeeId")
+            .populate("department", "name code")
+            .populate("category", "name slaHours");
+
+        return res
+            .status(201)
+            .json(
+                new ApiResponse(
+                    201,
+                    { grievance: createdGrievance },
+                    "Grievance submitted successfully"
+                )
+            );
+
+    } catch (error) {
+        // 6. Cleanup Cloudinary files if grievance creation fails
+        if (!grievanceSaved) {
+            await Promise.allSettled(
+                uploadedAttachments.map((file) =>
+                    deleteFromCloudinary(
+                        file.publicId,
+                        file.resourceType
+                    )
+                )
+            );
+        }
+
+
+        throw new ApiError(
+            500,
+            error.message || "Failed to submit grievance."
+        );
+    }
 });
 
 export const getAllGrievances = asyncHandler(async (req, res) => {

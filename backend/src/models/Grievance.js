@@ -28,6 +28,7 @@ const statusHistorySchema = new Schema(
     { _id: false }
 );
 
+
 const attachmentSchema = new Schema(
     {
         filename: {
@@ -38,9 +39,25 @@ const attachmentSchema = new Schema(
             type: String,
             required: true,
         },
+        publicId: {
+            type: String,
+            required: true,
+        },
         fileType: {
             type: String,
             default: "document",
+        },
+        resourceType: {
+            type: String,
+            default: "image",
+        },
+        format: {
+            type: String,
+            default: "",
+        },
+        size: {
+            type: Number,
+            default: 0,
         },
         uploadedAt: {
             type: Date,
@@ -49,6 +66,7 @@ const attachmentSchema = new Schema(
     },
     { _id: false }
 );
+
 
 const grievanceSchema = new Schema(
     {

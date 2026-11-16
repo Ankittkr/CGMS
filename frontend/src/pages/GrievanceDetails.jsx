@@ -77,6 +77,16 @@ const GrievanceDetails = () => {
     }
   };
 
+  const formatFileSize = (bytes) => {
+  if (!bytes) return 'Unknown size';
+
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+};
+
   if (isLoading || !currentGrievance) {
     return <LoadingSpinner fullPage message="Fetching complaint details..." />;
   }
@@ -184,25 +194,83 @@ const GrievanceDetails = () => {
           </div>
         </div>
 
+
         {/* Supporting Evidence / Attachments */}
         {currentGrievance.attachments?.length > 0 && (
           <div>
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Attached Evidence
+            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
+              Attached Evidence ({currentGrievance.attachments.length})
             </h3>
-            <div className="flex flex-wrap gap-2">
-              {currentGrievance.attachments.map((att, idx) => (
-                <div
-                  key={idx}
-                  className="px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 flex items-center gap-1.5"
-                >
-                  <Paperclip size={13} className="text-slate-400" />
-                  <span>{att.filename}</span>
-                </div>
-              ))}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {currentGrievance.attachments.map((att, idx) => {
+                const isImage =
+                  att.fileType?.startsWith('image/') ||
+                  att.resourceType === 'image';
+
+                const isPdf =
+                  att.fileType === 'application/pdf' ||
+                  att.format === 'pdf';
+
+                return (
+                  <div
+                    key={att.publicId || att.url || idx}
+                    className="border border-slate-200 rounded-xl overflow-hidden bg-white"
+                  >
+                    {/* Image Preview */}
+                    {isImage && att.url && (
+                      <a
+                        href={att.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block bg-slate-50"
+                      >
+                        <img
+                          src={att.url}
+                          alt={att.filename}
+                          className="w-full h-40 object-contain"
+                          loading="lazy"
+                        />
+                      </a>
+                    )}
+
+                    <div className="p-3 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Paperclip
+                          size={16}
+                          className="text-blue-600 shrink-0"
+                        />
+
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-slate-800 truncate">
+                            {att.filename}
+                          </p>
+
+                          <p className="text-[10px] text-slate-400">
+                            {att.format?.toUpperCase() || 'FILE'} •{' '}
+                            {formatFileSize(att.size)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {att.url && (
+                        <a
+                          href={att.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                        >
+                          {isPdf ? 'View PDF' : 'Open'}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
+
 
         {/* Official Resolution Summary (if resolved) */}
         {currentGrievance.resolutionDetails?.resolutionNotes && (

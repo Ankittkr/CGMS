@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect ,useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { submitGrievance, clearGrievanceSuccess } from '../redux/slices/grievanceSlice.js';
@@ -34,7 +34,8 @@ const SubmitGrievance = () => {
     declaration: false,
   });
 
-  const [mockFileName, setMockFileName] = useState('');
+  const [attachments, setAttachments] = useState([]);
+  const fileInputRef = useRef(null);
   const [createdGrievance, setCreatedGrievance] = useState(null);
 
   useEffect(() => {
@@ -65,27 +66,73 @@ const SubmitGrievance = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!formData.declaration) {
       alert('Please confirm the institutional declaration.');
       return;
     }
 
-    const result = await dispatch(
-      submitGrievance({
-        title: formData.title,
-        description: formData.description,
-        department: formData.department,
-        category: formData.category,
-        priority: formData.priority,
-        attachments: mockFileName
-          ? [{ filename: mockFileName, url: '/mock-evidence.pdf', fileType: 'pdf' }]
-          : [],
-      })
-    );
+    const payload = new FormData();
+
+    payload.append('title', formData.title);
+    payload.append('description', formData.description);
+    payload.append('department', formData.department);
+    payload.append('category', formData.category);
+    payload.append('priority', formData.priority);
+
+    // Append actual files
+    attachments.forEach((file) => {
+      payload.append('attachments', file);
+    });
+
+    const result = await dispatch(submitGrievance(payload));
 
     if (result.meta.requestStatus === 'fulfilled') {
       setCreatedGrievance(result.payload);
     }
+  };
+  
+  const handleFileChange = (e) => {
+  const selectedFiles = Array.from(e.target.files);
+
+  const allowedTypes = [
+    'application/pdf',
+    'image/png',
+    'image/jpeg',
+  ];
+
+  const validFiles = [];
+
+  for (const file of selectedFiles) {
+    if (!allowedTypes.includes(file.type)) {
+      alert(`${file.name}: Only PDF, PNG and JPG files are allowed.`);
+      continue;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      alert(`${file.name}: File size must not exceed 15MB.`);
+      continue;
+    }
+
+    validFiles.push(file);
+  }
+
+  setAttachments((prev) => {
+    const remainingSlots = 5 - prev.length;
+
+    if (validFiles.length > remainingSlots) {
+      alert('You can upload a maximum of 5 attachments.');
+    }
+
+    return [...prev, ...validFiles.slice(0, remainingSlots)];
+  });
+
+  // Allow selecting the same file again
+  e.target.value = '';
+  };
+
+const removeAttachment = (index) => {
+  setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
   if (createdGrievance) {
@@ -119,7 +166,10 @@ const SubmitGrievance = () => {
                 description: '',
                 declaration: false,
               });
-              setMockFileName('');
+              setAttachments([]);
+            if (fileInputRef.current) {
+              fileInputRef.current.value = '';
+            }
             }}
             className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
           >
@@ -257,27 +307,65 @@ const SubmitGrievance = () => {
             rows={5}
           />
 
-          {/* Attachment upload */}
+          {/* Attachment Upload */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Supporting Evidence / Documents (Optional)
             </label>
-            <div
-              onClick={() => setMockFileName('student_evidence_receipt.pdf')}
-              className="border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-xl p-6 text-center bg-slate-50/60 hover:bg-blue-50/30 transition-colors cursor-pointer"
-            >
+
+            <label className="border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-xl p-6 text-center bg-slate-50/60 hover:bg-blue-50/30 transition-colors cursor-pointer block">
               <UploadCloud size={30} className="mx-auto text-slate-400 mb-2" />
+
               <p className="text-xs font-semibold text-slate-700">
-                {mockFileName ? (
-                  <span className="text-emerald-600">Attached: {mockFileName}</span>
-                ) : (
-                  'Click or drag & drop screenshots, fee receipts, or error logs'
-                )}
+                Click to upload screenshots, receipts or documents
               </p>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Supported formats: PDF, PNG, JPG (Max 15MB)
+
+              <p className="text-[11px] text-slate-400 mt-1">
+                PDF, PNG, JPG | Maximum 15MB per file | Up to 5 files
               </p>
-            </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".pdf,.png,.jpg,.jpeg"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </label>
+
+            {/* Selected Files */}
+            {attachments.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {attachments.map((file, index) => (
+                  <div
+                    key={`${file.name}-${file.lastModified}-${index}`}
+                    className="flex items-center justify-between p-2.5 bg-blue-50 border border-blue-100 rounded-lg"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FilePlus2 size={16} className="text-blue-600 shrink-0" />
+
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-slate-700 truncate">
+                          {file.name}
+                        </p>
+                        <p className="text-[10px] text-slate-400">
+                          {(file.size / (1024 * 1024)).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => removeAttachment(index)}
+                      className="text-xs text-red-500 hover:text-red-700 font-semibold"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Declaration */}
