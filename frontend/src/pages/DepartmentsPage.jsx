@@ -99,20 +99,20 @@ const DepartmentsPage = () => {
     },
     ...(canManage
       ? [
-          {
-            header: 'Action',
-            accessor: (row) => (
-              <button
-                type="button"
-                onClick={() => handleOpenEdit(row)}
-                className="px-2.5 py-1 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md cursor-pointer flex items-center gap-1"
-              >
-                <Edit3 size={12} /> Edit
-              </button>
-            ),
-            width: '100px',
-          },
-        ]
+        {
+          header: 'Action',
+          accessor: (row) => (
+            <button
+              type="button"
+              onClick={() => handleOpenEdit(row)}
+              className="px-2.5 py-1 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md cursor-pointer flex items-center gap-1"
+            >
+              <Edit3 size={12} /> Edit
+            </button>
+          ),
+          width: '100px',
+        },
+      ]
       : []),
   ];
 

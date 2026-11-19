@@ -5,7 +5,8 @@ import { registerUser, clearAuthError } from '../redux/slices/authSlice.js';
 import { fetchDepartments } from '../redux/slices/departmentSlice.js';
 import FormInput from '../components/FormInput.jsx';
 import { UserPlus, ArrowRight } from 'lucide-react';
-
+import bgImage from '../assets/nitp_image.jpg'
+import logo from '../assets/logo.png'
 const Register = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -77,131 +78,169 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 border border-slate-800">
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-xl bg-blue-600 text-white font-bold text-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
-            C
-          </div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            Institutional Complainant Registration
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Create your account to lodge and track grievances with college authorities.
-          </p>
-        </div>
+<div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
 
-        {(error || localError) && (
-          <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700">
-            {localError || (typeof error === 'string' ? error : 'Registration failed.')}
-          </div>
-        )}
+  {/* Blurred Background Image Only */}
+  <div
+    className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105"
+    style={{
+      backgroundImage: `url(${bgImage})`,
+      filter: "blur(5px)",
+    }}
+  />
 
-        <form onSubmit={handleSubmit} className="space-y-3.5">
-          <FormInput
-            label="Full Name"
-            name="name"
-            value={formData.name}
+  {/* Registration Card */}
+  <div className="relative z-10 bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 border border-slate-800">
+
+    <div className="text-center mb-6">
+      <div className="w-20 h-20 p-2 rounded-xl  text-white font-bold text-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
+          <img
+                  src={logo}
+                  alt="NIT Patna Logo"
+                  className="w-full h-full object-contain"
+                />
+      </div>
+
+      <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+        NIT Patna Complainant Registration
+      </h1>
+
+      <p className="text-xs text-slate-500 mt-1">
+        Create your account to lodge and track grievances with college authorities.
+      </p>
+    </div>
+
+    {/* Error Message */}
+    {(error || localError) && (
+      <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700">
+        {localError ||
+          (typeof error === 'string'
+            ? error
+            : 'Registration failed.')}
+      </div>
+    )}
+
+    {/* Registration Form */}
+    <form onSubmit={handleSubmit} className="space-y-3.5">
+
+      <FormInput
+        label="Full Name"
+        name="name"
+        value={formData.name}
+        onChange={handleChange}
+        placeholder="e.g., Ankit Kumar"
+        required
+      />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <FormInput
+          label="Institutional Email"
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="rollno@college.edu"
+          required
+        />
+
+        <FormInput
+          label="Roll No / Employee ID"
+          name="rollOrEmployeeId"
+          value={formData.rollOrEmployeeId}
+          onChange={handleChange}
+          placeholder="e.g., 2026-CSE-042"
+          required
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <FormInput
+          label="Academic Department"
+          name="department"
+          type="select"
+          value={formData.department}
+          onChange={handleChange}
+          placeholder="-- Select Department --"
+          options={departments.map((d) => ({
+            value: d._id,
+            label: d.name,
+          }))}
+          required
+        />
+
+        <FormInput
+          label="Phone Number"
+          name="phone"
+          value={formData.phone}
+          onChange={handleChange}
+          placeholder="+91 9876543210"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <FormInput
+          label="Password"
+          name="password"
+          type="password"
+          value={formData.password}
+          onChange={handleChange}
+          placeholder="••••••••••••"
+          required
+        />
+
+        <FormInput
+          label="Confirm Password"
+          name="confirmPassword"
+          type="password"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          placeholder="••••••••••••"
+          required
+        />
+      </div>
+
+      {/* Terms & Conditions */}
+      <div className="pt-1">
+        <label className="flex items-start gap-2 text-xs text-slate-600 cursor-pointer">
+          <input
+            type="checkbox"
+            name="agreeTerms"
+            checked={formData.agreeTerms}
             onChange={handleChange}
-            placeholder="e.g., Ankit Kumar"
+            className="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
             required
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <FormInput
-              label="Institutional Email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="rollno@college.edu"
-              required
-            />
-            <FormInput
-              label="Roll No / Employee ID"
-              name="rollOrEmployeeId"
-              value={formData.rollOrEmployeeId}
-              onChange={handleChange}
-              placeholder="e.g., 2026-CSE-042"
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <FormInput
-              label="Academic Department"
-              name="department"
-              type="select"
-              value={formData.department}
-              onChange={handleChange}
-              placeholder="-- Select Department --"
-              options={departments.map((d) => ({ value: d._id, label: d.name }))}
-              required
-            />
-            <FormInput
-              label="Phone Number"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              placeholder="+91 9876543210"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <FormInput
-              label="Password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="••••••••••••"
-              required
-            />
-            <FormInput
-              label="Confirm Password"
-              name="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="••••••••••••"
-              required
-            />
-          </div>
-
-          <div className="pt-1">
-            <label className="flex items-start gap-2 text-xs text-slate-600 cursor-pointer">
-              <input
-                type="checkbox"
-                name="agreeTerms"
-                checked={formData.agreeTerms}
-                onChange={handleChange}
-                className="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                required
-              />
-              <span>
-                I agree to the University Grievance Regulations and confirm that submissions made are legitimate.
-              </span>
-            </label>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full mt-2 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {isLoading ? 'Creating Account...' : 'Complete Registration'}
-            <ArrowRight size={16} />
-          </button>
-        </form>
-
-        <div className="mt-6 pt-4 border-t border-slate-100 text-center text-xs text-slate-500">
-          Already registered?{' '}
-          <Link to="/login" className="font-semibold text-blue-600 hover:underline">
-            Sign In here
-          </Link>
-        </div>
+          <span>
+            I agree to the University Grievance Regulations and confirm that submissions made are legitimate.
+          </span>
+        </label>
       </div>
+
+      {/* Submit Button */}
+      <button
+        type="submit"
+        disabled={isLoading}
+        className="w-full mt-2 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+      >
+        {isLoading ? 'Creating Account...' : 'Complete Registration'}
+        <ArrowRight size={16} />
+      </button>
+    </form>
+
+    {/* Sign In Link */}
+    <div className="mt-6 pt-4 border-t border-slate-100 text-center text-xs text-slate-500">
+      Already registered?{' '}
+      <Link
+        to="/login"
+        className="font-semibold text-blue-600 hover:underline"
+      >
+        Sign In here
+      </Link>
     </div>
+
+  </div>
+</div>
   );
 };
 

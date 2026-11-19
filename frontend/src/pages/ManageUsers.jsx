@@ -123,14 +123,12 @@ const ManageUsers = () => {
       header: 'Status',
       accessor: (row) => (
         <span
-          className={`inline-flex items-center gap-1 text-xs font-bold ${
-            row.isActive ? 'text-emerald-600' : 'text-slate-400'
-          }`}
+          className={`inline-flex items-center gap-1 text-xs font-bold ${row.isActive ? 'text-emerald-600' : 'text-slate-400'
+            }`}
         >
           <span
-            className={`w-1.5 h-1.5 rounded-full ${
-              row.isActive ? 'bg-emerald-500' : 'bg-slate-400'
-            }`}
+            className={`w-1.5 h-1.5 rounded-full ${row.isActive ? 'bg-emerald-500' : 'bg-slate-400'
+              }`}
           />
           {row.isActive ? 'Active' : 'Inactive'}
         </span>
@@ -151,11 +149,10 @@ const ManageUsers = () => {
           <button
             type="button"
             onClick={() => handleToggleStatus(row)}
-            className={`p-1 rounded cursor-pointer ${
-              row.isActive
-                ? 'text-red-500 hover:bg-red-50'
-                : 'text-emerald-600 hover:bg-emerald-50'
-            }`}
+            className={`p-1 rounded cursor-pointer ${row.isActive
+              ? 'text-red-500 hover:bg-red-50'
+              : 'text-emerald-600 hover:bg-emerald-50'
+              }`}
             title={row.isActive ? 'Deactivate user' : 'Activate user'}
           >
             <Power size={14} />

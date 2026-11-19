@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import logo from '../assets/logo.png';
 import {
   LayoutDashboard,
   FilePlus2,
@@ -153,16 +154,16 @@ const Sidebar = ({ isCollapsed, onToggleCollapse, isMobileOpen, onCloseMobile })
         {/* Brand / Logo Header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-lg bg-blue-600 text-white font-bold text-lg flex items-center justify-center shrink-0 shadow-xs">
-              C
+            <div className="w-9 h-9 rounded-lg  text-white font-bold text-lg flex items-center justify-center shrink-0 shadow-xs">
+              <img src={logo} alt="Logo" className="w-full h-full object-cover" />
             </div>
             {!isCollapsed && (
               <div className="min-w-0">
                 <h1 className="text-sm font-bold text-white tracking-tight truncate">
-                  CGMS Portal
+                  CGMS
                 </h1>
                 <p className="text-[10px] text-slate-400 truncate">
-                  Institutional Grievance
+                  NITP Grievance Redressal & Resolution System
                 </p>
               </div>
             )}
